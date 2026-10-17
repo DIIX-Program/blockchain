@@ -136,6 +136,21 @@ npm test
 ```
 Runs both the PostgreSQL database test suite and Solidity smart contract test suites across all workspaces.
 
+### 6. Full Test Suite Summary
+| Layer | Suite | Tests | Status |
+|---|---|---|---|
+| Smart contracts | `npx hardhat test` | 3 | ✅ |
+| AI service | `pytest -q` | 22 | ✅ |
+| API — canonical hashing | `tsx --test test/canonical.test.ts` | 16 | ✅ |
+| API — EVM anchoring | `tsx --test test/evm_anchor.test.ts` | 5 | ✅ |
+| API — AI client | `tsx --test test/ai_client.test.ts` | 4 | ✅ |
+| API — database constraints | `tsx --test test/database.test.ts` | 11 | ✅ |
+| API — auth & RBAC | `tsx --test test/auth_rbac.test.ts` | 16 | ✅ |
+| API — E2E integration | `tsx --test test/e2e.test.ts` | 7 | ✅ |
+| Simulator | `tsx --test src/*.test.ts` | 48 | ✅ |
+| Web | `npm run build` | — | ✅ |
+| **Total** | | **136** | **✅ all green** |
+
 ---
 
 ## 6. Project Documentation Directory
