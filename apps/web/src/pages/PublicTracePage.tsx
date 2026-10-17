@@ -13,6 +13,7 @@ import { api } from '../api/client';
 import { StatusBadge } from '../components/StatusBadge';
 import { Timeline } from '../components/Timeline';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { QrCodeDisplay } from '../components/QRCode';
 
 export function PublicTracePage() {
   const { batchNumber } = useParams<{ batchNumber: string }>();
@@ -234,6 +235,34 @@ export function PublicTracePage() {
             ))}
           </div>
         )}
+
+        {/* Mobile Verification QR */}
+        <div className="glass-panel" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+            <QrCodeDisplay
+              value={data.qrCodeUrl || window.location.href}
+              alt="Scan to verify batch traceability"
+              size={160}
+            />
+            <div style={{ flex: '1 1 240px' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', marginBottom: '6px' }}>Scan to Verify</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '10px' }}>
+                Scan the QR code with a mobile device to open this batch's public
+                verification page and check the cryptographic blockchain anchor.
+              </p>
+              <div
+                className="mono"
+                style={{
+                  fontSize: '0.75rem',
+                  color: 'var(--text-muted)',
+                  wordBreak: 'break-all',
+                }}
+              >
+                {data.qrCodeUrl || window.location.href}
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Milestone Timeline */}
         <div className="glass-panel" style={{ padding: '28px' }}>

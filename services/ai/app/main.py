@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.health import router as health_router
+from app.api.anomaly import router as anomaly_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -20,6 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Root endpoint
 @app.get("/")
 def root():
@@ -30,10 +32,14 @@ def root():
         "health": "/health",
     }
 
-# Mount health routes
+
+# Mount routers
 app.include_router(health_router)
 app.include_router(health_router, prefix=settings.API_PREFIX)
+app.include_router(anomaly_router, prefix=settings.API_PREFIX)
+
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("app.main:app", host=settings.HOST, port=settings.PORT, reload=True)

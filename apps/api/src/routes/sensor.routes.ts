@@ -1,11 +1,13 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import crypto from 'crypto';
 import { prisma } from '../lib/prisma';
 import { authenticate, optionalAuthenticate } from '../middlewares/auth';
 import { validate } from '../middlewares/validate';
 import { getPaginationParams, formatPaginatedResponse } from '../lib/pagination';
 import { NotFoundError } from '../lib/errors';
+import { canonicalHash as computeCanonicalHash } from '../lib/canonical';
+import { aiClient, toAlertPayload } from '../lib/ai';
+import { DetectionMethod, AlertSeverity } from '@prisma/client';
 
 export const sensorRouter = Router();
 
@@ -127,18 +129,17 @@ sensorRouter.post(
         });
       }
 
-      // Compute canonical single-reading hash
-      const hashPayload = JSON.stringify({
+      // Compute canonical (RFC 8785 JCS) single-reading hash
+      const canonicalHash = computeCanonicalHash({
         batchId,
         deviceId,
-        humidityPercent: humidityPercent !== undefined ? humidityPercent : null,
-        latitude: latitude !== undefined ? latitude : null,
-        longitude: longitude !== undefined ? longitude : null,
+        humidityPercent: humidityPercent ?? null,
+        latitude: latitude ?? null,
+        longitude: longitude ?? null,
         recordedAt: recordedDate.toISOString(),
         sequenceNumber,
         temperatureC,
       });
-      const canonicalHash = crypto.createHash('sha256').update(hashPayload).digest('hex');
 
       const reading = await prisma.sensorReading.create({
         data: {
@@ -161,6 +162,65 @@ sensorRouter.post(
         where: { id: deviceId },
         data: { lastSeenAt: new Date() },
       });
+
+      // Non-blocking AI anomaly analysis: score the reading and, if anomalous,
+      // persist an AnomalyAlert. Failures are swallowed so telemetry
+      // ingestion always returns 201 even when the AI service is unavailable.
+      void (async () => {
+        try {
+          const aiReading = {
+            batchId,
+            deviceId,
+            sequenceNumber,
+            recordedAt,
+            temperatureC,
+            humidityPercent: humidityPercent ?? null,
+            latitude: latitude ?? null,
+            longitude: longitude ?? null,
+            isSimulated,
+          };
+          const aiResult = await aiClient.predict(aiReading);
+          if (aiResult.isAnomaly) {
+            const payload = toAlertPayload(aiReading, aiResult);
+            const severity =
+              payload.severity === 'critical'
+                ? AlertSeverity.CRITICAL
+                : payload.severity === 'warning'
+                  ? AlertSeverity.HIGH
+                  : AlertSeverity.LOW;
+
+            // Distinguish detection origin: rule-only, ML-only, or hybrid.
+            const hasRules = aiResult.ruleViolations.length > 0;
+            const hasMl = aiResult.flags.some((f) => f.source === 'isolation_forest');
+            const detectionMethod =
+              hasRules && hasMl
+                ? DetectionMethod.HYBRID
+                : hasRules
+                  ? DetectionMethod.RULE_BASED
+                  : DetectionMethod.ML_MODEL;
+
+            await prisma.anomalyAlert.create({
+              data: {
+                batchId,
+                deviceId,
+                detectionMethod,
+                severity,
+                anomalyScore: payload.anomalyScore ?? undefined,
+                ruleViolated: payload.ruleViolated,
+                explanation: payload.explanation,
+                readingWindowStart: recordedDate,
+                readingWindowEnd: recordedDate,
+              },
+            });
+          }
+        } catch (aiErr) {
+          // Telemetry must succeed regardless of AI-service availability.
+          console.error(
+            `[ai] async anomaly analysis failed for reading (batch=${batchId}, device=${deviceId}, seq=${sequenceNumber}):`,
+            aiErr,
+          );
+        }
+      })();
 
       res.status(201).json({
         status: 'INGESTED',

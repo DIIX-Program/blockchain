@@ -37,8 +37,13 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# Only ignore venv lib/ dirs — project source uses apps/*/src/lib/
+env/lib/
+venv/lib/
+.venv/lib/
+env/lib64/
+venv/lib64/
+.venv/lib64/
 parts/
 sdist/
 var/

@@ -141,6 +141,7 @@ batchRouter.get(
           ...a,
           blockNumber: a.blockNumber ? a.blockNumber.toString() : null,
         })),
+        qrCodeUrl: batch.qrCodeUrl,
         isAuthentic: batch.anchors.some((a) => a.status === 'CONFIRMED'),
       });
     } catch (error) {

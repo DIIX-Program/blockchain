@@ -27,7 +27,15 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     }
 
     const token = authHeader.substring(7).trim();
-    const payload: TokenPayload = verifyToken(token);
+
+    let payload: TokenPayload;
+    try {
+      payload = verifyToken(token);
+    } catch (jwtError) {
+      // jsonwebtoken throws JsonWebTokenError (malformed), TokenExpiredError
+      // (expired), or NotBeforeError — all are auth failures, not server bugs.
+      throw new UnauthorizedError('Invalid or expired authentication token');
+    }
 
     // Validate that the user still exists and is active
     const user = await prisma.user.findUnique({
