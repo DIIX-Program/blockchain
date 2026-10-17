@@ -1,0 +1,287 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// -----------------------------------------------------------------------------
+// ENUMS
+// -----------------------------------------------------------------------------
+
+enum UserRole {
+  ADMIN
+  PRODUCER
+  TRANSPORTER
+  WAREHOUSE_OPERATOR
+  VIEWER
+}
+
+enum OrganizationType {
+  PRODUCER
+  LOGISTICS_PROVIDER
+  WAREHOUSE
+  RETAILER
+  REGULATOR
+}
+
+enum BatchStatus {
+  CREATED
+  IN_TRANSIT
+  STORED
+  DELIVERED
+  REJECTED
+}
+
+enum EventType {
+  HARVEST_MANUFACTURE
+  DISPATCH
+  CHECKPOINT
+  CUSTODY_HANDOVER
+  WAREHOUSE_RECEIVE
+  FINAL_DELIVERY
+  SLA_VIOLATION
+}
+
+enum DetectionMethod {
+  RULE_BASED
+  ML_MODEL
+  HYBRID
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum AnchorStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
+
+// -----------------------------------------------------------------------------
+// MODELS
+// -----------------------------------------------------------------------------
+
+model Organization {
+  id           String           @id @default(uuid())
+  name         String           @db.VarChar(120)
+  code         String           @unique @db.VarChar(50)
+  type         OrganizationType
+  address      String?          @db.Text
+  contactEmail String           @db.VarChar(120)
+  createdAt    DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime         @updatedAt @db.Timestamptz(6)
+
+  users           User[]
+  products        Product[]
+  devices         Device[]
+  producedBatches Batch[]            @relation("BatchProducer")
+  heldBatches     Batch[]            @relation("BatchCurrentHolder")
+  eventsFrom      SupplyChainEvent[] @relation("EventFromOrg")
+  eventsTo        SupplyChainEvent[] @relation("EventToOrg")
+
+  @@map("organizations")
+}
+
+model User {
+  id             String        @id @default(uuid())
+  email          String        @unique @db.VarChar(120)
+  passwordHash   String        @db.VarChar(255)
+  fullName       String        @db.VarChar(120)
+  role           UserRole      @default(VIEWER)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime      @updatedAt @db.Timestamptz(6)
+
+  recordedEvents     SupplyChainEvent[]
+  acknowledgedAlerts AnomalyAlert[]     @relation("AlertAcknowledgedBy")
+  resolvedAlerts     AnomalyAlert[]     @relation("AlertResolvedBy")
+  auditLogs          AuditLog[]
+
+  @@map("users")
+}
+
+model Product {
+  id              String       @id @default(uuid())
+  sku             String       @unique @db.VarChar(60)
+  name            String       @db.VarChar(150)
+  description     String?      @db.Text
+  tempMinC        Decimal      @db.Decimal(5, 2)
+  tempMaxC        Decimal      @db.Decimal(5, 2)
+  humidityMin     Decimal?     @db.Decimal(5, 2)
+  humidityMax     Decimal?     @db.Decimal(5, 2)
+  maxTransitHours Int?
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime     @updatedAt @db.Timestamptz(6)
+
+  batches Batch[]
+
+  @@map("products")
+}
+
+model Batch {
+  id              String       @id @default(uuid())
+  batchNumber     String       @unique @db.VarChar(64)
+  productId       String
+  product         Product      @relation(fields: [productId], references: [id], onDelete: Restrict)
+  producerId      String
+  producer        Organization @relation("BatchProducer", fields: [producerId], references: [id], onDelete: Restrict)
+  currentHolderId String
+  currentHolder   Organization @relation("BatchCurrentHolder", fields: [currentHolderId], references: [id], onDelete: Restrict)
+  status          BatchStatus  @default(CREATED)
+  manufactureDate DateTime     @db.Timestamptz(6)
+  expiryDate      DateTime     @db.Timestamptz(6)
+  quantity        Int
+  qrCodeUrl       String?      @db.VarChar(255)
+  createdAt       DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime     @updatedAt @db.Timestamptz(6)
+
+  sensorReadings SensorReading[]
+  events         SupplyChainEvent[]
+  alerts         AnomalyAlert[]
+  anchors        DataAnchor[]
+
+  @@index([productId])
+  @@index([status])
+  @@map("batches")
+}
+
+model Device {
+  id             String        @id @default(uuid())
+  deviceCode     String        @unique @db.VarChar(60)
+  model          String        @db.VarChar(80)
+  isSimulated    Boolean       @default(true)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  lastSeenAt     DateTime?     @db.Timestamptz(6)
+  batteryPercent Decimal?      @db.Decimal(5, 2)
+  createdAt      DateTime      @default(now()) @db.Timestamptz(6)
+
+  sensorReadings SensorReading[]
+  alerts         AnomalyAlert[]
+
+  @@map("devices")
+}
+
+model SensorReading {
+  id              String   @id @default(uuid())
+  batchId         String
+  batch           Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  deviceId        String
+  device          Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  sequenceNumber  BigInt
+  recordedAt      DateTime @db.Timestamptz(6)
+  temperatureC    Decimal  @db.Decimal(5, 2)
+  humidityPercent Decimal? @db.Decimal(5, 2)
+  latitude        Decimal? @db.Decimal(9, 6)
+  longitude       Decimal? @db.Decimal(9, 6)
+  isSimulated     Boolean  @default(true)
+  canonicalHash   String?  @db.Char(64)
+  anchored        Boolean  @default(false)
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([deviceId, sequenceNumber, recordedAt], name: "idx_reading_idempotency")
+  @@index([batchId, recordedAt(sort: Desc)], name: "idx_reading_batch_time")
+  @@map("sensor_readings")
+}
+
+model SupplyChainEvent {
+  id           String        @id @default(uuid())
+  batchId      String
+  batch        Batch         @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  eventType    EventType
+  actorId      String?
+  actor        User?         @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  fromOrgId    String?
+  fromOrg      Organization? @relation("EventFromOrg", fields: [fromOrgId], references: [id], onDelete: SetNull)
+  toOrgId      String?
+  toOrg        Organization? @relation("EventToOrg", fields: [toOrgId], references: [id], onDelete: SetNull)
+  locationName String        @db.VarChar(150)
+  latitude     Decimal?      @db.Decimal(9, 6)
+  longitude    Decimal?      @db.Decimal(9, 6)
+  notes        String?       @db.Text
+  txHash       String?       @db.VarChar(66)
+  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
+
+  @@index([batchId, createdAt])
+  @@map("supply_chain_events")
+}
+
+model AnomalyAlert {
+  id                 String          @id @default(uuid())
+  batchId            String
+  batch              Batch           @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  deviceId           String?
+  device             Device?         @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  detectionMethod    DetectionMethod
+  severity           AlertSeverity
+  anomalyScore       Decimal?        @db.Decimal(5, 4)
+  ruleViolated       String?         @db.VarChar(120)
+  explanation        String          @db.Text
+  readingWindowStart DateTime        @db.Timestamptz(6)
+  readingWindowEnd   DateTime        @db.Timestamptz(6)
+  status             AlertStatus     @default(OPEN)
+  acknowledgedBy     String?
+  acknowledgedByUser User?           @relation("AlertAcknowledgedBy", fields: [acknowledgedBy], references: [id], onDelete: SetNull)
+  acknowledgedAt     DateTime?       @db.Timestamptz(6)
+  resolvedBy         String?
+  resolvedByUser     User?           @relation("AlertResolvedBy", fields: [resolvedBy], references: [id], onDelete: SetNull)
+  resolvedAt         DateTime?       @db.Timestamptz(6)
+  resolutionNotes    String?         @db.Text
+  createdAt          DateTime        @default(now()) @db.Timestamptz(6)
+
+  @@index([batchId, status])
+  @@map("anomaly_alerts")
+}
+
+model DataAnchor {
+  id            String       @id @default(uuid())
+  batchId       String
+  batch         Batch        @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  schemaVersion String       @default("1.0.0") @db.VarChar(20)
+  canonicalHash String       @db.Char(64)
+  merkleRoot    String?      @db.Char(64)
+  readingCount  Int
+  txHash        String?      @db.VarChar(66)
+  blockNumber   BigInt?
+  status        AnchorStatus @default(PENDING)
+  confirmedAt   DateTime?    @db.Timestamptz(6)
+  createdAt     DateTime     @default(now()) @db.Timestamptz(6)
+
+  @@index([batchId, createdAt(sort: Desc)])
+  @@map("data_anchors")
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action        String   @db.VarChar(100)
+  entityType    String   @db.VarChar(60)
+  entityId      String   @db.VarChar(64)
+  payloadBefore Json?
+  payloadAfter  Json?
+  ipAddress     String?  @db.VarChar(45)
+  userAgent     String?  @db.VarChar(255)
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
