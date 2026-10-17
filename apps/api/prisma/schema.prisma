@@ -255,6 +255,7 @@ model DataAnchor {
   batchId       String
   batch         Batch        @relation(fields: [batchId], references: [id], onDelete: Cascade)
   schemaVersion String       @default("1.0.0") @db.VarChar(20)
+  hashAlgorithm String       @default("SHA-256") @db.VarChar(30)
   canonicalHash String       @db.Char(64)
   merkleRoot    String?      @db.Char(64)
   readingCount  Int

@@ -9,8 +9,10 @@
     "start": "node dist/server.js",
     "prisma:generate": "node ../../node_modules/prisma/build/index.js generate",
     "prisma:migrate": "node ../../node_modules/prisma/build/index.js migrate dev",
+    "prisma:reset": "node ../../node_modules/prisma/build/index.js migrate reset --force",
     "prisma:seed": "node ../../node_modules/tsx/dist/cli.mjs prisma/seed.ts",
-    "prisma:studio": "node ../../node_modules/prisma/build/index.js studio"
+    "prisma:studio": "node ../../node_modules/prisma/build/index.js studio",
+    "test": "node ../../node_modules/tsx/dist/cli.mjs --test test/**/*.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.17.0",

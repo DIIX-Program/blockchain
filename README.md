@@ -57,12 +57,24 @@ Copy the template and adjust if necessary:
 cp .env.example .env
 ```
 
-### Step 3: Start PostgreSQL Database
+### Step 3: Start PostgreSQL Database & Apply Migrations
 Using Docker Compose:
 ```bash
 docker compose up -d
 ```
 *(If Docker is not running, ensure a local PostgreSQL 16 instance is running at `localhost:5432` with user `postgres` and password `postgres`).*
+
+Run database migrations and seed realistic demo data:
+```bash
+# Apply pending Prisma migrations
+npm --prefix apps/api run prisma:migrate
+
+# Seed demo cold-chain data (organizations, users, products, batches, sensors, alerts, anchors)
+npm --prefix apps/api run prisma:seed
+
+# Optional: Run database automated tests
+npm --prefix apps/api run test
+```
 
 ### Step 4: Setup Python AI Service Environment
 In `services/ai`:
@@ -118,6 +130,12 @@ To spin up a local Hardhat EVM node:
 npm run dev:node
 ```
 
+### 5. Running Monorepo Automated Tests
+```bash
+npm test
+```
+Runs both the PostgreSQL database test suite and Solidity smart contract test suites across all workspaces.
+
 ---
 
 ## 6. Project Documentation Directory
@@ -125,4 +143,6 @@ npm run dev:node
 - [PROJECT_PLAN.md](file:///d:/HocTap/Nam4/learn-blockchain/Nhom10_DeTai3_SMART%20COLD-CHAIN%20TRACEABILITY%20WITH%20IoT,%20AI%20&%20BLOCKCHAIN/docs/PROJECT_PLAN.md): Executive summary, scope, tech stack, risk mitigation.
 - [ARCHITECTURE.md](file:///d:/HocTap/Nam4/learn-blockchain/Nhom10_DeTai3_SMART%20COLD-CHAIN%20TRACEABILITY%20WITH%20IoT,%20AI%20&%20BLOCKCHAIN/docs/ARCHITECTURE.md): Architecture diagrams, sequence models, cryptographic specification.
 - [DATA_MODEL.md](file:///d:/HocTap/Nam4/learn-blockchain/Nhom10_DeTai3_SMART%20COLD-CHAIN%20TRACEABILITY%20WITH%20IoT,%20AI%20&%20BLOCKCHAIN/docs/DATA_MODEL.md): Relational database entities, ERD, indexes, and idempotency rules.
+- [DATABASE_ERD.md](file:///d:/HocTap/Nam4/learn-blockchain/Nhom10_DeTai3_SMART%20COLD-CHAIN%20TRACEABILITY%20WITH%20IoT,%20AI%20&%20BLOCKCHAIN/docs/DATABASE_ERD.md): Detailed Mermaid ERD and relational constraint rules.
+- [DATABASE_GUIDE.md](file:///d:/HocTap/Nam4/learn-blockchain/Nhom10_DeTai3_SMART%20COLD-CHAIN%20TRACEABILITY%20WITH%20IoT,%20AI%20&%20BLOCKCHAIN/docs/DATABASE_GUIDE.md): Migration, reset procedures, seeding, and verification guide.
 - [IMPLEMENTATION_ROADMAP.md](file:///d:/HocTap/Nam4/learn-blockchain/Nhom10_DeTai3_SMART%20COLD-CHAIN%20TRACEABILITY%20WITH%20IoT,%20AI%20&%20BLOCKCHAIN/docs/IMPLEMENTATION_ROADMAP.md): Detailed task backlog (Tasks 00 to 12).

@@ -333,6 +333,7 @@ async function main() {
     data: {
       batchId: batchVaccine.id,
       schemaVersion: '1.0.0',
+      hashAlgorithm: 'SHA-256',
       canonicalHash: '3a7b9c64ef58bc32a4e98f45a7b9c64ef58bc32a4e98f45a7b9c64ef58bc32a4',
       readingCount: 3,
       txHash: '0x7b58c92a10d94f27918a93ef07a932d847b2c91837f401928374a91082c9183a',
