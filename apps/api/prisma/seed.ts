@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting cold-chain database seeding...');
+  console.log(' Starting cold-chain database seeding...');
 
   // Clean existing records in reverse dependency order
   await prisma.auditLog.deleteMany();
@@ -179,7 +179,7 @@ async function main() {
     },
   });
 
-  console.log('🏷️ Seeded 2 Traceability Batches.');
+  console.log(' Seeded 2 Traceability Batches.');
 
   // 5. Devices
   const deviceTruck = await prisma.device.create({
@@ -303,7 +303,7 @@ async function main() {
     },
   });
 
-  console.log('🚚 Seeded 3 Supply Chain Handover Events.');
+  console.log(' Seeded 3 Supply Chain Handover Events.');
 
   // 8. Anomaly Alert (Demonstrating resolution tracking)
   await prisma.anomalyAlert.create({
@@ -326,7 +326,7 @@ async function main() {
     },
   });
 
-  console.log('⚠️ Seeded 1 Anomaly Alert record.');
+  console.log(' Seeded 1 Anomaly Alert record.');
 
   // 9. Data Anchor
   await prisma.dataAnchor.create({
@@ -343,7 +343,7 @@ async function main() {
     },
   });
 
-  console.log('⛓️ Seeded 1 Blockchain Data Anchor record.');
+  console.log(' Seeded 1 Blockchain Data Anchor record.');
 
   // 10. Audit Log
   await prisma.auditLog.create({
@@ -358,8 +358,8 @@ async function main() {
     },
   });
 
-  console.log('📝 Seeded Audit Log entry.');
-  console.log('✅ Database seeding finished successfully!');
+  console.log(' Seeded Audit Log entry.');
+  console.log(' Database seeding finished successfully!');
 }
 
 main()

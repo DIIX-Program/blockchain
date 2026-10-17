@@ -1,7 +1,19 @@
-import express, { Express, Request, Response, NextFunction } from 'express';
+import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import { config } from './config';
 import { healthRouter } from './routes/health.routes';
+import { authRouter } from './routes/auth.routes';
+import { organizationRouter } from './routes/organization.routes';
+import { userRouter } from './routes/user.routes';
+import { productRouter } from './routes/product.routes';
+import { batchRouter } from './routes/batch.routes';
+import { eventRouter } from './routes/event.routes';
+import { deviceRouter } from './routes/device.routes';
+import { sensorRouter } from './routes/sensor.routes';
+import { alertRouter } from './routes/alert.routes';
+import { anchorRouter } from './routes/anchor.routes';
+import { docsRouter } from './routes/docs.routes';
+import { errorHandler } from './middlewares/errorHandler';
 
 export function createApp(): Express {
   const app = express();
@@ -30,22 +42,29 @@ export function createApp(): Express {
   app.use('/health', healthRouter);
   app.use(`${config.API_PREFIX}/health`, healthRouter);
 
+  // API v1 Modules
+  app.use(`${config.API_PREFIX}/auth`, authRouter);
+  app.use(`${config.API_PREFIX}/organizations`, organizationRouter);
+  app.use(`${config.API_PREFIX}/users`, userRouter);
+  app.use(`${config.API_PREFIX}/products`, productRouter);
+  app.use(`${config.API_PREFIX}/batches`, batchRouter);
+  app.use(`${config.API_PREFIX}/events`, eventRouter);
+  app.use(`${config.API_PREFIX}/devices`, deviceRouter);
+  app.use(`${config.API_PREFIX}/sensors`, sensorRouter);
+  app.use(`${config.API_PREFIX}/alerts`, alertRouter);
+  app.use(`${config.API_PREFIX}/anchors`, anchorRouter);
+  app.use(`${config.API_PREFIX}/docs`, docsRouter);
+
   // Global 404 handler
   app.use((req: Request, res: Response) => {
     res.status(404).json({
-      error: 'Not Found',
+      error: 'NotFoundError',
       message: `Endpoint ${req.method} ${req.originalUrl} not found`,
     });
   });
 
-  // Global error handler
-  app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
-    console.error('Unhandled API Error:', err);
-    res.status(500).json({
-      error: 'InternalServerError',
-      message: config.NODE_ENV === 'production' ? 'An unexpected error occurred' : err.message,
-    });
-  });
+  // Global centralized error handler
+  app.use(errorHandler);
 
   return app;
 }
