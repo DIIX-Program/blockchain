@@ -101,6 +101,40 @@ body {
   50% { opacity: 1; transform: scale(1.05); }
 }
 
+@keyframes spinRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .pulse-indicator {
   animation: pulseGlow 2.5s infinite ease-in-out;
+}
+
+.spinner-rotate {
+  animation: spinRotate 1s linear infinite;
+}
+
+.table-row-hover:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary-cyan) !important;
+  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.25) !important;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(10, 14, 23, 0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.4);
 }
