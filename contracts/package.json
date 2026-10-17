@@ -1,0 +1,16 @@
+{
+  "name": "@coldchain/contracts",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "compile": "node ../node_modules/hardhat/internal/cli/bootstrap.js compile",
+    "test": "node ../node_modules/hardhat/internal/cli/bootstrap.js test",
+    "node": "node ../node_modules/hardhat/internal/cli/bootstrap.js node",
+    "deploy:local": "node ../node_modules/hardhat/internal/cli/bootstrap.js run scripts/deploy.ts --network localhost"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.6",
+    "typescript": "^5.5.4"
+  }
+}

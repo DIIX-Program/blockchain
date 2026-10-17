@@ -1,0 +1,22 @@
+{
+  "name": "smart-coldchain-traceability",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Smart Cold-Chain Supply Chain Traceability System Using IoT, AI, and Blockchain",
+  "workspaces": [
+    "apps/*",
+    "contracts",
+    "services/simulator"
+  ],
+  "scripts": {
+    "dev:api": "npm --workspace=@coldchain/api run dev",
+    "dev:web": "npm --workspace=@coldchain/web run dev",
+    "dev:node": "npm --workspace=@coldchain/contracts run node",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}
