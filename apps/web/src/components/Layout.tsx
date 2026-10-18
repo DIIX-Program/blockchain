@@ -11,7 +11,10 @@ import {
   Settings, 
   LogOut, 
   ExternalLink,
-  Clock
+  Clock,
+  Search,
+  Cpu,
+  X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,6 +24,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState<string>(new Date().toISOString());
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -34,25 +38,70 @@ export function Layout({ children }: { children: React.ReactNode }) {
     navigate('/login');
   };
 
-  const navItems = [
-    { name: 'Overview', path: '/', icon: LayoutDashboard },
-    { name: 'Products', path: '/products', icon: Package },
-    { name: 'Batches', path: '/batches', icon: Boxes },
-    { name: 'IoT Telemetry', path: '/sensors', icon: Activity },
-    { name: 'AI Alerts', path: '/alerts', icon: AlertTriangle },
-    { name: 'Blockchain Anchors', path: '/anchors', icon: LinkIcon },
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    const query = searchQuery.trim();
+    if (query.toUpperCase().startsWith('BATCH-') || query.length >= 6) {
+      navigate(`/batches?search=${encodeURIComponent(query)}`);
+    } else {
+      navigate(`/batches?search=${encodeURIComponent(query)}`);
+    }
+  };
+
+  const navSections = [
+    {
+      title: 'OPERATIONS',
+      items: [
+        { name: 'Overview', path: '/', icon: LayoutDashboard },
+        { name: 'Batches', path: '/batches', icon: Boxes },
+        { name: 'Products Catalog', path: '/products', icon: Package },
+      ]
+    },
+    {
+      title: 'INTELLIGENCE & IOT',
+      items: [
+        { name: 'IoT Telemetry', path: '/sensors', icon: Activity },
+        { name: 'AI Anomaly Alerts', path: '/alerts', icon: AlertTriangle },
+      ]
+    },
+    {
+      title: 'TRUST & VERIFICATION',
+      items: [
+        { name: 'Blockchain Anchors', path: '/anchors', icon: LinkIcon },
+      ]
+    },
     ...(hasRole('ADMIN', 'PRODUCER', 'TRANSPORTER', 'WAREHOUSE_OPERATOR')
-      ? [{ name: 'Management', path: '/admin', icon: Settings }]
-      : []),
+      ? [{
+          title: 'GOVERNANCE',
+          items: [
+            { name: 'Management & Admin', path: '/admin', icon: Settings },
+          ]
+        }]
+      : [])
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-canvas)' }}>
+      {/* Mobile Drawer Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          onClick={() => setMobileMenuOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.7)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 45,
+          }}
+        />
+      )}
+
       {/* Sidebar Navigation */}
       <aside
         style={{
-          width: '260px',
-          background: 'rgba(15, 23, 42, 0.95)',
+          width: '270px',
+          background: 'linear-gradient(180deg, rgba(13, 19, 33, 0.98) 0%, rgba(7, 10, 18, 0.99) 100%)',
           borderRight: '1px solid var(--border-subtle)',
           display: 'flex',
           flexDirection: 'column',
@@ -60,11 +109,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
           top: 0,
           bottom: 0,
           left: 0,
-          zIndex: 40,
+          zIndex: 50,
           transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(0)',
-          transition: 'transform 0.3s ease',
+          transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+          boxShadow: '4px 0 24px rgba(0,0,0,0.4)'
         }}
-        className="sidebar-desktop"
       >
         {/* Brand Header */}
         <div
@@ -73,179 +122,340 @@ export function Layout({ children }: { children: React.ReactNode }) {
             borderBottom: '1px solid var(--border-subtle)',
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
+            justifyContent: 'space-between',
           }}
         >
-          <div
-            style={{
-              background: 'linear-gradient(135deg, #06b6d4, #0284c7)',
-              padding: '8px',
-              borderRadius: '10px',
-              display: 'flex',
-              boxShadow: '0 4px 12px rgba(6, 182, 212, 0.4)',
-            }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)',
+                padding: '9px',
+                borderRadius: '12px',
+                display: 'flex',
+                boxShadow: '0 4px 16px rgba(6, 182, 212, 0.45)',
+                position: 'relative',
+              }}
+            >
+              <ShieldCheck size={22} color="#ffffff" />
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: -2,
+                  right: -2,
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: '#10b981',
+                  boxShadow: '0 0 6px #10b981'
+                }}
+              />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <h1 style={{ fontSize: '1.1rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff', lineHeight: 1.1 }}>
+                  ColdChain <span style={{ color: 'var(--cyan-400)' }}>3.0</span>
+                </h1>
+              </div>
+              <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', marginTop: '2px' }}>
+                IoT • AI • Blockchain
+              </p>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => setMobileMenuOpen(false)}
+            className="btn-icon"
+            style={{ display: 'none' }}
           >
-            <ShieldCheck size={24} color="#ffffff" />
-          </div>
-          <div>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff' }}>
-              ColdChain 3.0
-            </h2>
-            <span style={{ fontSize: '0.7rem', color: 'var(--primary-cyan)', fontWeight: 600 }}>
-              IoT • AI • Blockchain
-            </span>
-          </div>
+            <X size={18} />
+          </button>
         </div>
 
-        {/* Navigation Links */}
-        <nav style={{ padding: '20px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
-
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={() => setMobileMenuOpen(false)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  padding: '12px 16px',
-                  borderRadius: '10px',
-                  color: isActive ? '#ffffff' : 'var(--text-secondary)',
-                  background: isActive ? 'rgba(6, 182, 212, 0.15)' : 'transparent',
-                  border: isActive ? '1px solid var(--border-active)' : '1px solid transparent',
-                  textDecoration: 'none',
-                  fontSize: '0.9rem',
-                  fontWeight: isActive ? 600 : 500,
-                  transition: 'all 0.2s ease',
+        {/* Navigation Sections */}
+        <nav 
+          style={{ 
+            padding: '16px 14px', 
+            flex: 1, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '18px',
+            overflowY: 'auto'
+          }}
+        >
+          {navSections.map((section) => (
+            <div key={section.title}>
+              <div 
+                style={{ 
+                  fontSize: '0.68rem', 
+                  fontWeight: 700, 
+                  color: 'var(--text-muted)', 
+                  letterSpacing: '0.08em', 
+                  padding: '0 10px 8px 10px',
+                  textTransform: 'uppercase'
                 }}
               >
-                <Icon size={18} color={isActive ? 'var(--primary-cyan)' : 'var(--text-muted)'} />
-                <span>{item.name}</span>
-              </NavLink>
-            );
-          })}
+                {section.title}
+              </div>
 
-          {/* Public Portal external link */}
-          <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid var(--border-subtle)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location.pathname === item.path || 
+                    (item.path !== '/' && location.pathname.startsWith(item.path));
+
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setMobileMenuOpen(false)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        color: isActive ? '#ffffff' : 'var(--text-secondary)',
+                        background: isActive 
+                          ? 'linear-gradient(90deg, rgba(6, 182, 212, 0.16) 0%, rgba(2, 132, 199, 0.08) 100%)' 
+                          : 'transparent',
+                        border: isActive ? '1px solid rgba(6, 182, 212, 0.35)' : '1px solid transparent',
+                        textDecoration: 'none',
+                        fontSize: '0.875rem',
+                        fontWeight: isActive ? 600 : 500,
+                        transition: 'all 0.18s ease',
+                      }}
+                    >
+                      <Icon 
+                        size={18} 
+                        color={isActive ? 'var(--cyan-400)' : 'var(--text-muted)'} 
+                      />
+                      <span style={{ flex: 1 }}>{item.name}</span>
+                      {isActive && (
+                        <div 
+                          style={{ 
+                            width: 6, 
+                            height: 6, 
+                            borderRadius: '50%', 
+                            background: 'var(--cyan-400)',
+                            boxShadow: '0 0 8px var(--cyan-400)'
+                          }} 
+                        />
+                      )}
+                    </NavLink>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* Public Portal Showcase Card */}
+          <div style={{ marginTop: 'auto', paddingTop: '16px' }}>
             <NavLink
               to="/trace/BATCH-VAX-2026-001"
               target="_blank"
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '10px 14px',
-                borderRadius: '8px',
-                background: 'rgba(255, 255, 255, 0.03)',
-                color: 'var(--text-secondary)',
+                display: 'block',
+                padding: '14px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(99, 102, 241, 0.1) 100%)',
+                border: '1px solid rgba(6, 182, 212, 0.25)',
                 textDecoration: 'none',
-                fontSize: '0.8rem',
+                color: 'var(--text-primary)',
+                transition: 'all 0.2s ease',
               }}
             >
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ExternalLink size={14} color="var(--primary-cyan)" />
-                Public QR Portal
-              </span>
-              <span className="badge badge-normal" style={{ fontSize: '0.6rem', padding: '1px 6px' }}>Live</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--cyan-300)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Public Portal
+                </span>
+                <span className="badge badge-normal" style={{ fontSize: '0.62rem', padding: '1px 6px' }}>
+                  Live QR
+                </span>
+              </div>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.3 }}>
+                Scan & verify tamper-proof blockchain seal without login.
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '10px', fontSize: '0.75rem', color: 'var(--cyan-400)', fontWeight: 600 }}>
+                <span>Inspect Certificate</span>
+                <ExternalLink size={13} />
+              </div>
             </NavLink>
           </div>
         </nav>
 
-        {/* User Card & Logout */}
-        {user && (
+        {/* User Profile Bar */}
+        {user ? (
           <div
             style={{
-              padding: '16px 20px',
+              padding: '16px 18px',
               borderTop: '1px solid var(--border-subtle)',
-              background: 'rgba(0, 0, 0, 0.2)',
+              background: 'rgba(6, 10, 18, 0.95)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div style={{ overflow: 'hidden' }}>
-                <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#ffffff', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                  {user.fullName}
-                </p>
-                <span className="badge badge-cyan" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>
-                  {user.role}
-                </span>
-              </div>
-              <button
-                onClick={handleLogout}
-                title="Logout"
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+              <div
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer',
-                  padding: '6px',
-                  borderRadius: '6px',
+                  width: 36,
+                  height: 36,
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(99, 102, 241, 0.25) 100%)',
+                  border: '1px solid rgba(6, 182, 212, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  color: 'var(--cyan-300)',
+                  flexShrink: 0
                 }}
               >
-                <LogOut size={16} />
-              </button>
+                {user.fullName ? user.fullName.slice(0, 2).toUpperCase() : 'CC'}
+              </div>
+              <div style={{ overflow: 'hidden' }}>
+                <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                  {user.fullName || 'Operator'}
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="badge badge-cyan" style={{ fontSize: '0.62rem', padding: '1px 5px', textTransform: 'capitalize' }}>
+                    {user.role ? user.role.toLowerCase().replace('_', ' ') : 'User'}
+                  </span>
+                </div>
+              </div>
             </div>
-            {user.organization && (
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {user.organization.name}
-              </p>
-            )}
+
+            <button
+              onClick={handleLogout}
+              title="Sign Out"
+              className="btn-icon"
+              style={{ flexShrink: 0 }}
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
+        ) : (
+          <div style={{ padding: '14px 18px', borderTop: '1px solid var(--border-subtle)' }}>
+            <NavLink to="/login" className="btn btn-primary btn-sm" style={{ width: '100%' }}>
+              Sign In
+            </NavLink>
           </div>
         )}
       </aside>
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, marginLeft: '260px', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div style={{ flex: 1, marginLeft: '270px', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Top Header Bar */}
         <header
           style={{
-            height: '64px',
+            height: '68px',
             borderBottom: '1px solid var(--border-subtle)',
-            background: 'rgba(10, 14, 23, 0.8)',
-            backdropFilter: 'blur(12px)',
+            background: 'rgba(7, 10, 18, 0.85)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '0 32px',
             position: 'sticky',
             top: 0,
-            zIndex: 30,
+            zIndex: 40,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
-              Smart Cold-Chain Traceability System (IoT + AI + Blockchain)
-            </span>
+          {/* Left search & title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+            <form onSubmit={handleSearchSubmit} className="search-bar-wrapper" style={{ width: '320px' }}>
+              <Search size={16} className="search-bar-icon" />
+              <input
+                type="text"
+                placeholder="Search batch code (e.g. BATCH-VAX)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="form-input search-bar-input"
+                style={{ fontSize: '0.825rem', padding: '8px 12px 8px 36px', height: '38px', borderRadius: '10px' }}
+              />
+              <span className="search-shortcut-badge">↵</span>
+            </form>
           </div>
 
+          {/* Right Status Pill & Network Monitor */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            {/* UTC Clock */}
+            {/* System Status Indicators */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              {/* Hardhat EVM */}
+              <div 
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '6px', 
+                  fontSize: '0.75rem', 
+                  color: 'var(--text-secondary)',
+                  background: 'rgba(15, 23, 42, 0.6)',
+                  padding: '5px 10px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-subtle)'
+                }}
+              >
+                <span className="beacon-dot online" style={{ width: 6, height: 6 }} />
+                <span>EVM Ledger</span>
+                <span className="mono" style={{ color: 'var(--cyan-400)', fontWeight: 600 }}>#31337</span>
+              </div>
+
+              {/* AI Sentinel */}
+              <div 
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '6px', 
+                  fontSize: '0.75rem', 
+                  color: 'var(--text-secondary)',
+                  background: 'rgba(15, 23, 42, 0.6)',
+                  padding: '5px 10px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-subtle)'
+                }}
+              >
+                <Cpu size={13} color="var(--indigo-400)" />
+                <span>AI Anomaly:</span>
+                <span style={{ color: '#34d399', fontWeight: 600 }}>Active</span>
+              </div>
+            </div>
+
+            {/* Live Clock */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 fontSize: '0.8rem',
-                color: 'var(--text-muted)',
+                color: 'var(--text-secondary)',
+                background: 'rgba(255, 255, 255, 0.04)',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid var(--border-subtle)',
               }}
             >
-              <Clock size={14} color="var(--primary-cyan)" />
-              <span className="mono">{currentTime.slice(11, 19)} UTC</span>
+              <Clock size={14} color="var(--cyan-400)" />
+              <span className="mono" style={{ fontWeight: 600 }}>
+                {currentTime.slice(11, 19)} <span style={{ color: 'var(--text-muted)' }}>UTC</span>
+              </span>
             </div>
-
-            {/* Health pill */}
-            <span className="badge badge-normal" style={{ fontSize: '0.7rem' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-              Ledger Active
-            </span>
           </div>
         </header>
 
         {/* Page Inner Container */}
-        <main style={{ flex: 1, padding: '32px', maxWidth: '1400px', width: '100%', margin: '0 auto' }}>
+        <main 
+          style={{ 
+            flex: 1, 
+            padding: '32px', 
+            maxWidth: '1540px', 
+            width: '100%', 
+            margin: '0 auto',
+            boxSizing: 'border-box'
+          }}
+        >
           {children}
         </main>
       </div>

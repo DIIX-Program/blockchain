@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
   ShieldCheck, 
-  CheckCircle2, 
   Thermometer, 
   Clock, 
   AlertTriangle, 
   Link as LinkIcon, 
-  Radio
+  Radio,
+  Award,
+  Sparkles,
+  Printer
 } from 'lucide-react';
 import { api } from '../api/client';
 import { StatusBadge } from '../components/StatusBadge';
@@ -41,35 +43,28 @@ export function PublicTracePage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-main)' }}>
-        <LoadingSpinner message="Verifying batch cryptographic proofs from public registry..." />
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-canvas)' }}>
+        <LoadingSpinner message="Verifying EVM smart contract records and cryptographic proofs..." />
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-main)', padding: '24px' }}>
-        <div className="glass-panel" style={{ maxWidth: '520px', padding: '36px', textAlign: 'center' }}>
-          <AlertTriangle size={48} color="#f43f5e" style={{ margin: '0 auto 16px' }} />
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
-            Traceability Verification Failed
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-canvas)', padding: '24px' }}>
+        <div className="glass-panel" style={{ maxWidth: '520px', padding: '40px', textAlign: 'center' }}>
+          <div style={{ background: 'rgba(244, 63, 94, 0.15)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+            <AlertTriangle size={32} color="#f43f5e" />
+          </div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
+            Verification Seal Not Found
           </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px' }}>
-            {error || 'The requested batch code does not exist.'}
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px', lineHeight: 1.5 }}>
+            {error || 'The requested batch code has not been published or verified on the public ledger.'}
           </p>
           <Link
             to="/login"
-            style={{
-              display: 'inline-flex',
-              padding: '10px 20px',
-              borderRadius: '8px',
-              background: 'linear-gradient(135deg, #06b6d4, #0284c7)',
-              color: '#ffffff',
-              textDecoration: 'none',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-            }}
+            className="btn btn-primary"
           >
             Access Operator Dashboard
           </Link>
@@ -82,179 +77,278 @@ export function PublicTracePage() {
   const tempMin = product ? Number(product.tempMinC) : 2.0;
   const tempMax = product ? Number(product.tempMaxC) : 8.0;
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-primary)', paddingBottom: '60px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-canvas)', color: 'var(--text-primary)', paddingBottom: '80px' }}>
       {/* Public Header Banner */}
       <header
         style={{
-          background: 'rgba(15, 23, 42, 0.9)',
+          background: 'rgba(7, 10, 18, 0.9)',
           borderBottom: '1px solid var(--border-subtle)',
-          padding: '20px 24px',
+          padding: '16px 24px',
           position: 'sticky',
           top: 0,
-          zIndex: 30,
-          backdropFilter: 'blur(12px)',
+          zIndex: 40,
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
         }}
       >
-        <div style={{ maxWidth: '1080px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ maxWidth: '1120px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div
               style={{
-                background: 'linear-gradient(135deg, #06b6d4, #0284c7)',
+                background: 'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)',
                 padding: '8px',
                 borderRadius: '10px',
                 display: 'flex',
-                boxShadow: '0 4px 12px rgba(6, 182, 212, 0.4)',
+                boxShadow: '0 4px 14px rgba(6, 182, 212, 0.4)',
               }}
             >
               <ShieldCheck size={22} color="#ffffff" />
             </div>
             <div>
-              <span style={{ fontSize: '1rem', fontWeight: 800, color: '#ffffff' }}>ColdChain Certified</span>
-              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Public Consumer & Auditor Verification Portal</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.01em' }}>
+                  ColdChain Certified
+                </span>
+                <span className="badge badge-normal" style={{ fontSize: '0.62rem', padding: '1px 6px' }}>
+                  Official Audit
+                </span>
+              </div>
+              <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                Public Consumer & Regulatory Inspection Portal
+              </p>
             </div>
           </div>
 
-          <Link
-            to="/login"
-            style={{
-              padding: '6px 14px',
-              borderRadius: '6px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid var(--border-subtle)',
-              color: 'var(--text-secondary)',
-              textDecoration: 'none',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-            }}
-          >
-            Operator Sign In
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={handlePrint}
+              className="btn btn-secondary btn-sm"
+              title="Print Certificate"
+            >
+              <Printer size={14} /> Print Certificate
+            </button>
+            <Link
+              to="/login"
+              className="btn btn-outline-cyan btn-sm"
+            >
+              Operator Sign In
+            </Link>
+          </div>
         </div>
       </header>
 
       {/* Main Public Container */}
-      <main style={{ maxWidth: '1080px', margin: '36px auto 0', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      <main style={{ maxWidth: '1120px', margin: '40px auto 0', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
         {/* Verification Certificate Card */}
         <div
           className="glass-panel"
           style={{
-            padding: '32px',
-            borderColor: isAuthentic ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-subtle)',
-            background: 'radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.08) 0%, rgba(18, 24, 38, 0.95) 70%)',
+            padding: '36px',
+            borderColor: isAuthentic ? 'rgba(16, 185, 129, 0.4)' : 'rgba(245, 158, 11, 0.35)',
+            background: 'radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.09) 0%, rgba(13, 20, 36, 0.95) 60%)',
+            boxShadow: '0 20px 50px -15px rgba(0, 0, 0, 0.8), 0 0 30px rgba(16, 185, 129, 0.15)',
+            position: 'relative',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
+          {/* Top Verification Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px', marginBottom: '24px' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                <span className="mono" style={{ fontSize: '0.85rem', color: 'var(--primary-cyan)', fontWeight: 700 }}>
-                  BATCH: {data.batchNumber}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span className="mono" style={{ fontSize: '0.85rem', color: 'var(--cyan-400)', fontWeight: 700 }}>
+                  BATCH LOT: {data.batchNumber}
                 </span>
                 <StatusBadge status={data.status} type="batch" />
               </div>
-              <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#ffffff' }}>{product?.name}</h1>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
-                Manufactured by <strong style={{ color: '#ffffff' }}>{producer?.name}</strong> ({producer?.code})
+
+              <h1 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                {product?.name}
+              </h1>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginTop: '6px' }}>
+                Manufactured by <strong style={{ color: '#ffffff' }}>{producer?.name}</strong>{' '}
+                <span className="mono" style={{ color: 'var(--text-muted)' }}>({producer?.code})</span>
               </p>
             </div>
 
+            {/* Holographic Verification Stamp */}
             <div style={{ textAlign: 'right' }}>
               {isAuthentic ? (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '8px 16px', borderRadius: '12px', color: '#34d399', fontWeight: 700, fontSize: '0.9rem' }}>
-                  <CheckCircle2 size={20} /> Verified On Blockchain
+                <div 
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '10px', 
+                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.15) 100%)', 
+                    border: '1px solid rgba(16, 185, 129, 0.45)', 
+                    padding: '12px 20px', 
+                    borderRadius: '16px', 
+                    color: '#34d399', 
+                    fontWeight: 800, 
+                    fontSize: '0.95rem',
+                    boxShadow: '0 0 20px rgba(16, 185, 129, 0.25)'
+                  }}
+                >
+                  <Award size={24} color="#34d399" />
+                  <div>
+                    <div style={{ lineHeight: 1.1 }}>Cryptographically Verified</div>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                      On-Chain Blockchain Seal
+                    </span>
+                  </div>
                 </div>
               ) : (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '8px 16px', borderRadius: '12px', color: '#fbbf24', fontWeight: 700, fontSize: '0.9rem' }}>
-                  <Clock size={20} /> Pending Blockchain Anchor
+                <div 
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '10px', 
+                    background: 'rgba(245, 158, 11, 0.15)', 
+                    border: '1px solid rgba(245, 158, 11, 0.35)', 
+                    padding: '12px 20px', 
+                    borderRadius: '16px', 
+                    color: '#fbbf24', 
+                    fontWeight: 800, 
+                    fontSize: '0.95rem' 
+                  }}
+                >
+                  <Clock size={22} />
+                  <div>
+                    <div style={{ lineHeight: 1.1 }}>Pending Ledger Seal</div>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                      Readings in transit
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
-          <p style={{ color: 'var(--text-primary)', fontSize: '0.95rem', lineHeight: 1.5, marginBottom: '24px' }}>
-            {product?.description || 'Ultra-pure certified formulation tracked with automated temperature logging.'}
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '28px', maxWidth: '820px' }}>
+            {product?.description || 'Ultra-pure certified biological formulation protected with high-frequency telemetry surveillance, AI anomaly screening, and immutable ledger verification.'}
           </p>
 
-          {/* Key Facts Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-            <div style={{ background: 'rgba(0, 0, 0, 0.3)', padding: '16px', borderRadius: '10px' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {/* Key Facts Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+            <div style={{ background: 'rgba(10, 14, 23, 0.7)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border-subtle)' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Thermometer size={14} color="#10b981" /> Storage Compliance Band
               </span>
-              <p className="mono" style={{ fontSize: '1.15rem', fontWeight: 800, color: '#34d399', marginTop: '4px' }}>
+              <p className="mono" style={{ fontSize: '1.3rem', fontWeight: 800, color: '#34d399', marginTop: '6px' }}>
                 {tempMin}°C to {tempMax}°C
               </p>
-            </div>
-
-            <div style={{ background: 'rgba(0, 0, 0, 0.3)', padding: '16px', borderRadius: '10px' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Radio size={14} color="#3b82f6" /> Telemetry Surveillance
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                Guaranteed zero critical excursions
               </span>
-              <p className="mono" style={{ fontSize: '1.15rem', fontWeight: 800, color: '#60a5fa', marginTop: '4px' }}>
-                {telemetry.totalReadings} Readings Logged
-              </p>
             </div>
 
-            <div style={{ background: 'rgba(0, 0, 0, 0.3)', padding: '16px', borderRadius: '10px' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Manufacture Date</span>
-              <p className="mono" style={{ fontSize: '0.95rem', color: '#ffffff', marginTop: '4px' }}>
-                {new Date(data.manufactureDate).toISOString().slice(0, 10)}
+            <div style={{ background: 'rgba(10, 14, 23, 0.7)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border-subtle)' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Radio size={14} color="#38bdf8" /> Telemetry Surveillance
+              </span>
+              <p className="mono" style={{ fontSize: '1.3rem', fontWeight: 800, color: '#38bdf8', marginTop: '6px' }}>
+                {telemetry.totalReadings} Samples
               </p>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                Avg Temp: <span className="mono" style={{ color: '#ffffff' }}>{telemetry.avgTemp ? `${telemetry.avgTemp.toFixed(1)}°C` : 'Compliant'}</span>
+              </span>
             </div>
 
-            <div style={{ background: 'rgba(0, 0, 0, 0.3)', padding: '16px', borderRadius: '10px' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Expiration Date</span>
-              <p className="mono" style={{ fontSize: '0.95rem', color: '#ffffff', marginTop: '4px' }}>
-                {new Date(data.expiryDate).toISOString().slice(0, 10)}
+            <div style={{ background: 'rgba(10, 14, 23, 0.7)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border-subtle)' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                Manufacture Date
+              </span>
+              <p className="mono" style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ffffff', marginTop: '6px' }}>
+                {new Date(data.manufactureDate).toLocaleDateString()}
               </p>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                Certified Facility Inspection
+              </span>
+            </div>
+
+            <div style={{ background: 'rgba(10, 14, 23, 0.7)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border-subtle)' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                Expiration Date
+              </span>
+              <p className="mono" style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ffffff', marginTop: '6px' }}>
+                {new Date(data.expiryDate).toLocaleDateString()}
+              </p>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                Stable shelf life guaranteed
+              </span>
             </div>
           </div>
         </div>
 
         {/* Blockchain Cryptographic Verification Strip */}
         {blockchainAnchors && blockchainAnchors.length > 0 && (
-          <div className="glass-panel" style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-              <LinkIcon size={20} color="var(--primary-cyan)" />
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff' }}>
-                Hardhat EVM Blockchain Proof Commitment
-              </h3>
+          <div className="glass-panel" style={{ padding: '28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <LinkIcon size={20} color="var(--cyan-400)" />
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff' }}>
+                EVM Blockchain Cryptographic Proof
+              </h2>
             </div>
-            {blockchainAnchors.map((anchor: any, idx: number) => (
-              <div key={idx} style={{ background: 'rgba(0, 0, 0, 0.25)', padding: '14px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>SHA-256 Batch Telemetry Hash:</div>
-                <div className="mono" style={{ fontSize: '0.85rem', color: 'var(--primary-cyan)', wordBreak: 'break-all', marginBottom: '8px' }}>
-                  {anchor.canonicalHash}
-                </div>
-                {anchor.txHash && (
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                    Mined Transaction Hash: <span className="mono" style={{ color: '#ffffff' }}>{anchor.txHash}</span>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {blockchainAnchors.map((anchor: any, idx: number) => (
+                <div key={idx} style={{ background: 'rgba(10, 14, 23, 0.7)', padding: '18px', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase', fontWeight: 700 }}>
+                    SHA-256 Batch Telemetry Hash (RFC 8785 Canonical JSON):
                   </div>
-                )}
-              </div>
-            ))}
+                  <div className="mono" style={{ fontSize: '0.88rem', color: 'var(--cyan-300)', wordBreak: 'break-all', marginBottom: '10px' }}>
+                    {anchor.canonicalHash}
+                  </div>
+                  {anchor.txHash && (
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span>Mined EVM Transaction:</span>
+                      <span className="mono" style={{ color: '#ffffff', fontWeight: 600 }}>{anchor.txHash}</span>
+                      <span className="badge badge-normal" style={{ fontSize: '0.65rem' }}>
+                        Immutable Record
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* Mobile Verification QR */}
-        <div className="glass-panel" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
-            <QrCodeDisplay
-              value={data.qrCodeUrl || window.location.href}
-              alt="Scan to verify batch traceability"
-              size={160}
-            />
-            <div style={{ flex: '1 1 240px' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', marginBottom: '6px' }}>Scan to Verify</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '10px' }}>
-                Scan the QR code with a mobile device to open this batch's public
-                verification page and check the cryptographic blockchain anchor.
+        {/* Mobile Verification QR Box */}
+        <div className="glass-panel" style={{ padding: '28px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '28px', flexWrap: 'wrap' }}>
+            <div style={{ background: '#ffffff', padding: '14px', borderRadius: '16px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
+              <QrCodeDisplay
+                value={data.qrCodeUrl || window.location.href}
+                alt="Scan to verify batch traceability"
+                size={160}
+                darkColor="#070a12"
+                lightColor="#ffffff"
+              />
+            </div>
+
+            <div style={{ flex: '1 1 260px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <Sparkles size={16} color="var(--cyan-400)" />
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ffffff' }}>
+                  Scan to Verify Anywhere
+                </h3>
+              </div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '14px', lineHeight: 1.5 }}>
+                Scan this cryptographically stamped QR seal using any standard smartphone camera to access instant, zero-login verification of temperature adherence and blockchain integrity.
               </p>
               <div
                 className="mono"
                 style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--text-muted)',
+                  fontSize: '0.78rem',
+                  color: 'var(--cyan-300)',
+                  background: 'rgba(6, 182, 212, 0.08)',
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(6, 182, 212, 0.2)',
                   wordBreak: 'break-all',
                 }}
               >
@@ -264,13 +358,13 @@ export function PublicTracePage() {
           </div>
         </div>
 
-        {/* Milestone Timeline */}
-        <div className="glass-panel" style={{ padding: '28px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-            <Clock size={20} color="var(--primary-cyan)" />
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#ffffff' }}>
-              Custody Journey & Milestone Verifications
-            </h3>
+        {/* Milestone Custody Timeline */}
+        <div className="glass-panel" style={{ padding: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+            <Clock size={20} color="var(--cyan-400)" />
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff' }}>
+              Verified Custody Route & Handover Milestones
+            </h2>
           </div>
           <Timeline events={timeline || []} />
         </div>

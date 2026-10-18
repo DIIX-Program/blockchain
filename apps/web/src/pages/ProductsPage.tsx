@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Plus, Thermometer, Droplets, Clock, ArrowRight, X } from 'lucide-react';
+import { 
+  Package, 
+  Plus, 
+  Thermometer, 
+  Droplets, 
+  Clock, 
+  ArrowRight, 
+  X, 
+  Search,
+  Building
+} from 'lucide-react';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -10,6 +20,7 @@ export function ProductsPage() {
   const { hasRole } = useAuth();
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<any[]>([]);
+  const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -64,7 +75,6 @@ export function ProductsPage() {
       });
 
       setModalOpen(false);
-      // Reset form
       setSku('');
       setName('');
       setDescription('');
@@ -74,147 +84,156 @@ export function ProductsPage() {
     }
   };
 
+  const getColdClassBadge = (min: number, max: number) => {
+    if (min <= -60) {
+      return <span className="badge badge-alert">Ultra-Cold (-70°C)</span>;
+    }
+    if (min <= -15) {
+      return <span className="badge badge-indigo">Deep Frozen (-20°C)</span>;
+    }
+    if (min >= 0 && max <= 10) {
+      return <span className="badge badge-cyan">Chilled (2°C — 8°C)</span>;
+    }
+    return <span className="badge badge-normal">Controlled Ambient (15-25°C)</span>;
+  };
+
+  const filteredProducts = products.filter((p) => 
+    p.name.toLowerCase().includes(search.toLowerCase()) || 
+    p.sku.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#ffffff' }}>
-            Product Catalog & SLA Profiles
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--cyan-400)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Temperature Master Data
+            </span>
+          </div>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
+            Product Catalog & Cold-Chain SLA Profiles
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
-            Configure and maintain temperature-controlled pharmaceutical and perishable product thresholds
+            Configure and enforce strict temperature and humidity tolerance bounds for pharmaceuticals, biologics, and perishables.
           </p>
         </div>
 
         {hasRole('ADMIN', 'PRODUCER') && (
           <button
             onClick={() => setModalOpen(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 18px',
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, #06b6d4, #0284c7)',
-              border: 'none',
-              color: '#ffffff',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              cursor: 'pointer',
-              boxShadow: '0 4px 15px rgba(6, 182, 212, 0.4)',
-            }}
+            className="btn btn-primary"
           >
             <Plus size={18} /> Register Product
           </button>
         )}
       </div>
 
+      {/* Search Bar */}
+      <div className="glass-panel" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+        <div className="search-bar-wrapper" style={{ width: '100%', maxWidth: '380px' }}>
+          <Search size={16} className="search-bar-icon" />
+          <input
+            type="text"
+            placeholder="Search by SKU or product title..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="form-input search-bar-input"
+            style={{ fontSize: '0.85rem' }}
+          />
+        </div>
+        <span className="mono" style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>
+          {filteredProducts.length} Product SKUs registered
+        </span>
+      </div>
+
       {loading ? (
         <LoadingSpinner message="Loading registered product profiles..." />
-      ) : products.length === 0 ? (
+      ) : filteredProducts.length === 0 ? (
         <EmptyState
-          title="No products registered yet"
-          description="Create your first cold-chain product profile to establish threshold rules."
-          action={
-            hasRole('ADMIN', 'PRODUCER') ? (
-              <button
-                onClick={() => setModalOpen(true)}
-                className="badge badge-cyan"
-                style={{ padding: '8px 16px', cursor: 'pointer', border: 'none' }}
-              >
-                Register Product Now
-              </button>
-            ) : null
-          }
+          title="No products match your query"
+          description="Try adjusting your search or register a new cold-chain SKU."
         />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '24px' }}>
-          {products.map((prod) => (
-            <div key={prod.id} className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+          {filteredProducts.map((prod) => (
+            <div key={prod.id} className="glass-panel" style={{ padding: '26px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
                 <div>
-                  <span className="mono" style={{ fontSize: '0.8rem', color: 'var(--primary-cyan)', fontWeight: 600 }}>
+                  <span className="mono" style={{ fontSize: '0.8rem', color: 'var(--cyan-400)', fontWeight: 700 }}>
                     {prod.sku}
                   </span>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff', marginTop: '2px' }}>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', marginTop: '2px', lineHeight: 1.2 }}>
                     {prod.name}
-                  </h3>
+                  </h2>
                 </div>
-                <div style={{ background: 'rgba(6, 182, 212, 0.1)', padding: '8px', borderRadius: '8px' }}>
-                  <Package size={20} color="var(--primary-cyan)" />
-                </div>
+                {getColdClassBadge(Number(prod.tempMinC), Number(prod.tempMaxC))}
               </div>
 
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '20px', flex: 1 }}>
-                {prod.description || 'No description provided.'}
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: 1.5, marginBottom: '20px', flex: 1 }}>
+                {prod.description || 'Clinical-grade formulation with automated temperature monitoring requirements.'}
               </p>
 
-              {/* Threshold specifications grid */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: '12px',
-                  background: 'rgba(0, 0, 0, 0.25)',
-                  padding: '14px',
-                  borderRadius: '10px',
-                  marginBottom: '20px',
+              {/* Specification Cards */}
+              <div 
+                style={{ 
+                  background: 'rgba(10, 14, 23, 0.6)', 
+                  padding: '14px 16px', 
+                  borderRadius: '12px', 
+                  border: '1px solid var(--border-subtle)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  marginBottom: '20px'
                 }}
               >
-                <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Thermometer size={12} color="#10b981" /> Safe Temp Zone
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Thermometer size={14} color="#10b981" /> Safe Band:
                   </span>
-                  <p className="mono" style={{ fontSize: '0.95rem', fontWeight: 700, color: '#34d399', marginTop: '2px' }}>
-                    {Number(prod.tempMinC).toFixed(1)}°C to {Number(prod.tempMaxC).toFixed(1)}°C
-                  </p>
+                  <span className="mono" style={{ color: '#34d399', fontWeight: 700 }}>
+                    {Number(prod.tempMinC).toFixed(1)}°C — {Number(prod.tempMaxC).toFixed(1)}°C
+                  </span>
                 </div>
 
-                <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Droplets size={12} color="#3b82f6" /> Humidity Range
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Droplets size={14} color="#38bdf8" /> Humidity SLA:
                   </span>
-                  <p className="mono" style={{ fontSize: '0.95rem', fontWeight: 700, color: '#60a5fa', marginTop: '2px' }}>
-                    {prod.humidityMin ? `${Number(prod.humidityMin)}% - ${Number(prod.humidityMax)}%` : 'Unregulated'}
-                  </p>
+                  <span className="mono" style={{ color: '#818cf8', fontWeight: 600 }}>
+                    {prod.humidityMin ? `${Number(prod.humidityMin)}% - ${Number(prod.humidityMax)}%` : 'Unconstrained'}
+                  </span>
                 </div>
 
-                <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Clock size={12} /> Max Transit SLA
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Clock size={14} color="var(--text-muted)" /> Transit SLA:
                   </span>
-                  <p className="mono" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                    {prod.maxTransitHours ? `${prod.maxTransitHours} Hours` : 'Standard'}
-                  </p>
+                  <span className="mono" style={{ color: '#ffffff', fontWeight: 600 }}>
+                    {prod.maxTransitHours ? `${prod.maxTransitHours} Hours` : 'No Max'}
+                  </span>
                 </div>
 
-                <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Active Batches</span>
-                  <p className="mono" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                    {prod._count?.batches || 0} Batches
-                  </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Building size={14} color="var(--text-muted)" /> Producer:
+                  </span>
+                  <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
+                    {prod.organization?.name || 'VaxLab Biotech'}
+                  </span>
                 </div>
               </div>
 
-              {/* Footer action */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Org: {prod.organization?.name}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span className="badge badge-neutral" style={{ fontSize: '0.72rem' }}>
+                  {prod.batches?.length || 0} Batches Registered
                 </span>
                 <Link
                   to={`/products/${prod.id}`}
-                  style={{
-                    color: 'var(--primary-cyan)',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                  }}
+                  className="btn btn-secondary btn-sm"
                 >
-                  View Batches <ArrowRight size={14} />
+                  Inspect Profile <ArrowRight size={13} />
                 </Link>
               </div>
             </div>
@@ -222,173 +241,132 @@ export function ProductsPage() {
         </div>
       )}
 
-      {/* Modal: Create Product */}
+      {/* Modal: Register Product */}
       {modalOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 50,
-            padding: '20px',
-          }}
-        >
-          <div
-            className="glass-panel"
-            style={{
-              width: '100%',
-              maxWidth: '560px',
-              padding: '32px',
-              background: '#0f172a',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff' }}>
-                Register New Cold-Chain Product
-              </h2>
-              <button
-                onClick={() => setModalOpen(false)}
-                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
-              >
-                <X size={20} />
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Package size={20} color="var(--cyan-400)" />
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff' }}>
+                  Register Product SKU & Threshold
+                </h2>
+              </div>
+              <button onClick={() => setModalOpen(false)} className="btn-icon">
+                <X size={18} />
               </button>
             </div>
 
             {error && (
-              <div style={{ background: 'rgba(244, 63, 94, 0.1)', color: '#fb7185', padding: '10px 14px', borderRadius: '8px', marginBottom: '16px', fontSize: '0.85rem' }}>
+              <div style={{ margin: '16px 26px 0 26px', background: 'var(--status-alert-bg)', border: '1px solid var(--status-alert-border)', color: '#fb7185', padding: '12px 16px', borderRadius: '10px', fontSize: '0.85rem' }}>
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleCreateProduct} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                  Product SKU *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. PROD-VAX-MRNA-02"
-                  value={sku}
-                  onChange={(e) => setSku(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-subtle)', color: '#ffffff' }}
-                />
-              </div>
+            <form onSubmit={handleCreateProduct}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px' }}>
+                  <div className="form-group">
+                    <label className="form-label">Product SKU *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. SKU-INSULIN-01"
+                      value={sku}
+                      onChange={(e) => setSku(e.target.value)}
+                      className="form-input mono"
+                    />
+                  </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                  Product Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. VaxGuard mRNA Vaccine (0.5ml Single Dose)"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-subtle)', color: '#ffffff' }}
-                />
-              </div>
+                  <div className="form-group">
+                    <label className="form-label">Full Product Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Human Insulin Biosimilar"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+                </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Min Permitted Temp (°C) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    required
-                    value={tempMinC}
-                    onChange={(e) => setTempMinC(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-subtle)', color: '#ffffff' }}
+                <div className="form-group">
+                  <label className="form-label">Clinical Description & Handling Notes</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Storage specifications, light sensitivity, and pharmaceutical compliance requirements."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="form-textarea"
                   />
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Max Permitted Temp (°C) *
-                  </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px' }}>
+                  <div className="form-group">
+                    <label className="form-label">Min Temp (°C) *</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      required
+                      value={tempMinC}
+                      onChange={(e) => setTempMinC(e.target.value)}
+                      className="form-input mono"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Max Temp (°C) *</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      required
+                      value={tempMaxC}
+                      onChange={(e) => setTempMaxC(e.target.value)}
+                      className="form-input mono"
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px' }}>
+                  <div className="form-group">
+                    <label className="form-label">Min Humidity (%)</label>
+                    <input
+                      type="number"
+                      value={humidityMin}
+                      onChange={(e) => setHumidityMin(e.target.value)}
+                      className="form-input mono"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Max Humidity (%)</label>
+                    <input
+                      type="number"
+                      value={humidityMax}
+                      onChange={(e) => setHumidityMax(e.target.value)}
+                      className="form-input mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Max Transit Duration (Hours)</label>
                   <input
                     type="number"
-                    step="0.1"
-                    required
-                    value={tempMaxC}
-                    onChange={(e) => setTempMaxC(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-subtle)', color: '#ffffff' }}
+                    value={maxTransitHours}
+                    onChange={(e) => setMaxTransitHours(e.target.value)}
+                    className="form-input mono"
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Min Humidity (%)
-                  </label>
-                  <input
-                    type="number"
-                    value={humidityMin}
-                    onChange={(e) => setHumidityMin(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-subtle)', color: '#ffffff' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Max Humidity (%)
-                  </label>
-                  <input
-                    type="number"
-                    value={humidityMax}
-                    onChange={(e) => setHumidityMax(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-subtle)', color: '#ffffff' }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                  Transit SLA Limit (Hours)
-                </label>
-                <input
-                  type="number"
-                  value={maxTransitHours}
-                  onChange={(e) => setMaxTransitHours(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-subtle)', color: '#ffffff' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                  Description / Storage Handling Notes
-                </label>
-                <textarea
-                  rows={3}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Keep protected from direct light; active refrigeration required."
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-subtle)', color: '#ffffff' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '12px' }}>
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  style={{ padding: '10px 16px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', cursor: 'pointer' }}
-                >
+              <div className="modal-footer">
+                <button type="button" onClick={() => setModalOpen(false)} className="btn btn-secondary">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  style={{ padding: '10px 20px', borderRadius: '8px', background: 'linear-gradient(135deg, #06b6d4, #0284c7)', border: 'none', color: '#ffffff', fontWeight: 700, cursor: 'pointer' }}
-                >
-                  Save Product
+                <button type="submit" className="btn btn-primary">
+                  Save Product Profile
                 </button>
               </div>
             </form>

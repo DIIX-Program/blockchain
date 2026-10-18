@@ -1,11 +1,24 @@
-import { CheckCircle2, Clock, AlertTriangle, XCircle, Truck, PackageCheck, ShieldAlert } from 'lucide-react';
+import { 
+  CheckCircle2, 
+  Clock, 
+  AlertTriangle, 
+  XCircle, 
+  Truck, 
+  PackageCheck, 
+  ShieldAlert, 
+  Radio, 
+  RefreshCw, 
+  Ban,
+  Activity
+} from 'lucide-react';
 
 interface StatusBadgeProps {
   status: string;
-  type?: 'batch' | 'alert' | 'anchor' | 'severity';
+  type?: 'batch' | 'alert' | 'anchor' | 'severity' | 'device';
+  pulse?: boolean;
 }
 
-export function StatusBadge({ status, type = 'batch' }: StatusBadgeProps) {
+export function StatusBadge({ status, type = 'batch', pulse = false }: StatusBadgeProps) {
   const s = status?.toUpperCase() || 'UNKNOWN';
 
   // 1. Batch Status
@@ -20,7 +33,7 @@ export function StatusBadge({ status, type = 'batch' }: StatusBadgeProps) {
       case 'IN_TRANSIT':
         return (
           <span className="badge badge-warning">
-            <Truck size={12} /> In Transit
+            <Truck size={12} className={pulse ? "spinner-rotate" : ""} /> In Transit
           </span>
         );
       case 'STORED':
@@ -35,6 +48,18 @@ export function StatusBadge({ status, type = 'batch' }: StatusBadgeProps) {
             <CheckCircle2 size={12} /> Delivered
           </span>
         );
+      case 'ALERT_FLAGGED':
+        return (
+          <span className="badge badge-alert">
+            <AlertTriangle size={12} /> Alert Flagged
+          </span>
+        );
+      case 'RECALLED':
+        return (
+          <span className="badge badge-alert">
+            <Ban size={12} /> Recalled
+          </span>
+        );
       case 'REJECTED':
         return (
           <span className="badge badge-alert">
@@ -42,7 +67,7 @@ export function StatusBadge({ status, type = 'batch' }: StatusBadgeProps) {
           </span>
         );
       default:
-        return <span className="badge badge-cyan">{status}</span>;
+        return <span className="badge badge-neutral">{status}</span>;
     }
   }
 
@@ -76,7 +101,7 @@ export function StatusBadge({ status, type = 'batch' }: StatusBadgeProps) {
       case 'OPEN':
         return (
           <span className="badge badge-alert">
-            <AlertTriangle size={12} /> Open
+            <span className="beacon-dot alert" style={{ width: 6, height: 6 }} /> Open
           </span>
         );
       case 'ACKNOWLEDGED':
@@ -91,8 +116,14 @@ export function StatusBadge({ status, type = 'batch' }: StatusBadgeProps) {
             <CheckCircle2 size={12} /> Resolved
           </span>
         );
+      case 'FALSE_POSITIVE':
+        return (
+          <span className="badge badge-neutral">
+            <CheckCircle2 size={12} /> False Positive
+          </span>
+        );
       default:
-        return <span className="badge badge-cyan">{status}</span>;
+        return <span className="badge badge-neutral">{status}</span>;
     }
   }
 
@@ -108,7 +139,7 @@ export function StatusBadge({ status, type = 'batch' }: StatusBadgeProps) {
       case 'PENDING':
         return (
           <span className="badge badge-warning">
-            <Clock size={12} /> Pending Block
+            <RefreshCw size={12} className="spinner-rotate" /> Pending Block
           </span>
         );
       case 'FAILED':
@@ -118,9 +149,35 @@ export function StatusBadge({ status, type = 'batch' }: StatusBadgeProps) {
           </span>
         );
       default:
-        return <span className="badge badge-cyan">{status}</span>;
+        return <span className="badge badge-neutral">{status}</span>;
     }
   }
 
-  return <span className="badge badge-cyan">{status}</span>;
+  // 4. Device Status
+  if (type === 'device') {
+    switch (s) {
+      case 'ACTIVE':
+        return (
+          <span className="badge badge-normal">
+            <span className="beacon-dot online" style={{ width: 6, height: 6 }} /> Active
+          </span>
+        );
+      case 'INACTIVE':
+        return (
+          <span className="badge badge-neutral">
+            <Radio size={12} /> Inactive
+          </span>
+        );
+      case 'FAULTY':
+        return (
+          <span className="badge badge-alert">
+            <Activity size={12} /> Faulty
+          </span>
+        );
+      default:
+        return <span className="badge badge-neutral">{status}</span>;
+    }
+  }
+
+  return <span className="badge badge-neutral">{status}</span>;
 }

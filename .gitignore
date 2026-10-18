@@ -64,6 +64,7 @@ docker_data/
 # IDE & OS
 .idea/
 .vscode/
+.gemini/
 *.swp
 *.swo
 .DS_Store

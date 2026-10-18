@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Lock, Mail, AlertCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { 
+  ShieldCheck, 
+  Lock, 
+  Mail, 
+  AlertCircle, 
+  ArrowRight, 
+  Sparkles,
+  QrCode,
+  ExternalLink
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export function LoginPage() {
@@ -28,11 +37,11 @@ export function LoginPage() {
   };
 
   const demoAccounts = [
-    { role: 'ADMIN', email: 'admin@coldchain.internal', desc: 'System Admin' },
-    { role: 'PRODUCER', email: 'producer@vaxlab.com', desc: 'VaxLab Pharma Director' },
-    { role: 'TRANSPORTER', email: 'driver@coldtrans.com', desc: 'ColdTrans Fleet Driver' },
-    { role: 'WAREHOUSE', email: 'operator@biodepot.com', desc: 'BioDepot Vault Operator' },
-    { role: 'VIEWER', email: 'auditor@regulator.gov', desc: 'FDA / QA Inspector' },
+    { role: 'ADMIN', email: 'admin@coldchain.internal', title: 'System Controller', color: 'var(--cyan-400)' },
+    { role: 'PRODUCER', email: 'producer@vaxlab.com', title: 'Pharma Producer', color: '#38bdf8' },
+    { role: 'TRANSPORTER', email: 'driver@coldtrans.com', title: 'Fleet Logistics Driver', color: '#fbbf24' },
+    { role: 'WAREHOUSE', email: 'operator@biodepot.com', title: 'Cold Vault Operator', color: '#818cf8' },
+    { role: 'AUDITOR', email: 'auditor@regulator.gov', title: 'FDA / QA Inspector', color: '#34d399' },
   ];
 
   return (
@@ -43,7 +52,8 @@ export function LoginPage() {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '24px',
-        background: 'radial-gradient(circle at 50% 30%, rgba(6, 182, 212, 0.12) 0%, #0a0e17 70%)',
+        background: 'radial-gradient(circle at 50% 25%, rgba(6, 182, 212, 0.12) 0%, rgba(99, 102, 241, 0.05) 40%, #070a12 80%)',
+        position: 'relative'
       }}
     >
       <div
@@ -52,32 +62,47 @@ export function LoginPage() {
           width: '100%',
           maxWidth: '480px',
           padding: '40px 36px',
-          borderColor: 'rgba(6, 182, 212, 0.25)',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8)',
+          borderColor: 'rgba(6, 182, 212, 0.28)',
+          boxShadow: '0 24px 60px -15px rgba(0, 0, 0, 0.9), 0 0 30px rgba(6, 182, 212, 0.2)',
+          background: 'linear-gradient(180deg, rgba(15, 23, 42, 0.9) 0%, rgba(9, 14, 26, 0.98) 100%)',
         }}
       >
         {/* Brand Icon & Heading */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div
             style={{
-              width: '56px',
-              height: '56px',
+              width: '60px',
+              height: '60px',
               borderRadius: '16px',
-              background: 'linear-gradient(135deg, #06b6d4, #0284c7)',
+              background: 'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 8px 24px rgba(6, 182, 212, 0.4)',
+              boxShadow: '0 8px 24px rgba(6, 182, 212, 0.45)',
               marginBottom: '16px',
+              position: 'relative'
             }}
           >
             <ShieldCheck size={32} color="#ffffff" />
+            <div 
+              style={{
+                position: 'absolute',
+                top: -3,
+                right: -3,
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                background: '#10b981',
+                boxShadow: '0 0 8px #10b981'
+              }}
+            />
           </div>
-          <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
-            ColdChain Platform
+
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+            ColdChain <span style={{ color: 'var(--cyan-400)' }}>3.0</span>
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '6px' }}>
-            Secure enterprise IoT, AI & Hardhat EVM traceability
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '6px' }}>
+            Enterprise IoT Telemetry, AI Surveillance & EVM Ledger Gateway
           </p>
         </div>
 
@@ -85,8 +110,8 @@ export function LoginPage() {
         {error && (
           <div
             style={{
-              background: 'rgba(244, 63, 94, 0.12)',
-              border: '1px solid rgba(244, 63, 94, 0.3)',
+              background: 'var(--status-alert-bg)',
+              border: '1px solid var(--status-alert-border)',
               borderRadius: '10px',
               padding: '12px 16px',
               marginBottom: '20px',
@@ -103,11 +128,9 @@ export function LoginPage() {
         )}
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
-              Email Address
-            </label>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <div className="form-group">
+            <label className="form-label">Email Address</label>
             <div style={{ position: 'relative' }}>
               <Mail
                 size={18}
@@ -119,25 +142,15 @@ export function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="name@company.com"
-                style={{
-                  width: '100%',
-                  padding: '12px 14px 12px 42px',
-                  borderRadius: '10px',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid var(--border-subtle)',
-                  color: '#ffffff',
-                  fontSize: '0.9rem',
-                  outline: 'none',
-                }}
+                placeholder="operator@coldchain.internal"
+                className="form-input"
+                style={{ paddingLeft: '42px' }}
               />
             </div>
           </div>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
-              Password
-            </label>
+          <div className="form-group">
+            <label className="form-label">Password</label>
             <div style={{ position: 'relative' }}>
               <Lock
                 size={18}
@@ -150,16 +163,8 @@ export function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••••••"
-                style={{
-                  width: '100%',
-                  padding: '12px 14px 12px 42px',
-                  borderRadius: '10px',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid var(--border-subtle)',
-                  color: '#ffffff',
-                  fontSize: '0.9rem',
-                  outline: 'none',
-                }}
+                className="form-input"
+                style={{ paddingLeft: '42px' }}
               />
             </div>
           </div>
@@ -167,69 +172,72 @@ export function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            style={{
-              marginTop: '8px',
-              padding: '14px',
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, #06b6d4, #0284c7)',
-              border: 'none',
-              color: '#ffffff',
-              fontWeight: 700,
-              fontSize: '0.95rem',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              boxShadow: '0 4px 16px rgba(6, 182, 212, 0.4)',
-              transition: 'all 0.2s ease',
-            }}
+            className="btn btn-primary btn-lg"
+            style={{ width: '100%', marginTop: '4px' }}
           >
-            {loading ? 'Authenticating...' : (
-              <>
-                Sign In to Dashboard <ArrowRight size={18} />
-              </>
-            )}
+            {loading ? 'Authenticating Credentials...' : 'Sign In to Command Center'}
+            <ArrowRight size={16} />
           </button>
         </form>
 
-        {/* 1-Click Role Switcher Demo */}
-        <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--primary-cyan)', fontWeight: 600, marginBottom: '12px' }}>
-            <Sparkles size={14} /> 1-Click Demo Accounts (RBAC Test):
+        {/* 1-Click Demo Accounts Quick-Fill */}
+        <div style={{ marginTop: '28px', paddingTop: '22px', borderTop: '1px solid var(--border-subtle)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+            <Sparkles size={14} color="var(--cyan-400)" />
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Quick Demo Accounts (1-Click Fill)
+            </span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {demoAccounts.map((demo) => (
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
+            {demoAccounts.map((acc) => (
               <button
-                key={demo.role}
+                key={acc.role}
                 type="button"
                 onClick={() => {
-                  setEmail(demo.email);
+                  setEmail(acc.email);
                   setPassword('password123');
                 }}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '8px 12px',
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid var(--border-subtle)',
+                  background: email === acc.email ? 'rgba(6, 182, 212, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                  border: email === acc.email ? '1px solid var(--cyan-500)' : '1px solid var(--border-subtle)',
                   borderRadius: '8px',
-                  color: 'var(--text-secondary)',
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
+                  padding: '8px 10px',
                   textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                <span>
-                  <strong style={{ color: '#ffffff' }}>{demo.role}</strong> — {demo.desc}
-                </span>
-                <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                  Auto-fill
-                </span>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: acc.color }}>
+                  {acc.role}
+                </div>
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {acc.title}
+                </div>
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Public Portal Link */}
+        <div style={{ marginTop: '22px', textAlign: 'center' }}>
+          <Link
+            to="/trace/BATCH-VAX-2026-001"
+            target="_blank"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.8rem',
+              color: 'var(--cyan-400)',
+              textDecoration: 'none',
+              fontWeight: 600,
+            }}
+          >
+            <QrCode size={14} />
+            <span>Open Public QR Verification Portal (No login required)</span>
+            <ExternalLink size={12} />
+          </Link>
         </div>
       </div>
     </div>
