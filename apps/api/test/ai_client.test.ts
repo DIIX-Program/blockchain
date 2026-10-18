@@ -11,7 +11,10 @@ import type { TelemetryReading, PredictionResult } from '../src/lib/ai';
 // service trains/loads its Isolation Forest in memory.
 
 const AI_DIR = path.resolve(__dirname, '../../../services/ai');
-const VENV_PY = path.join(AI_DIR, '.venv', 'bin', 'python');
+const VENV_PY =
+  process.platform === 'win32'
+    ? path.join(AI_DIR, '.venv', 'Scripts', 'python.exe')
+    : path.join(AI_DIR, '.venv', 'bin', 'python');
 const AI_URL = 'http://127.0.0.1:8000';
 
 let svc: ReturnType<typeof spawn> | null = null;

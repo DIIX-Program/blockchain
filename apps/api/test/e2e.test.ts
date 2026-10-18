@@ -37,7 +37,10 @@ const HARDHAT_BIN = path.resolve(
   '../node_modules/hardhat/internal/cli/bootstrap.js',
 );
 const AI_DIR = path.resolve(__dirname, '../../../services/ai');
-const VENV_PY = path.join(AI_DIR, '.venv', 'bin', 'python');
+const VENV_PY =
+  process.platform === 'win32'
+    ? path.join(AI_DIR, '.venv', 'Scripts', 'python.exe')
+    : path.join(AI_DIR, '.venv', 'bin', 'python');
 
 const RPC_URL = 'http://127.0.0.1:8545';
 const DEPLOYER_KEY =
